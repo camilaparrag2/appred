@@ -13,3 +13,7 @@ services:
         value: appred.settings
       - key: PYTHON_VERSION
         value: 3.12
+      - key: DATABASE_PATH
+        value: /var/data/db.sqlite3
+      - key: MEDIA_ROOT
+        value: /var/data/media
