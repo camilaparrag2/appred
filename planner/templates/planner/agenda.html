@@ -1,0 +1,56 @@
+{% extends 'planner/base.html' %}
+{% block title %}Agenda Semanal{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold">Agenda Semanal</h2>
+    <a href="{% url 'agenda_add' %}" class="bg-indigo-700 text-white px-4 py-2 rounded-lg hover:bg-indigo-800 transition font-medium">+ Nuevo Post</a>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+    {% for day_code in days_order %}
+        {% with day_label='' %}
+            {% for code, label in days %}
+                {% if code == day_code %}
+                    <div class="bg-white rounded-xl shadow min-h-[200px]">
+                        <div class="bg-indigo-700 text-white text-center py-2 rounded-t-xl font-semibold text-sm">{{ label|slice:":3" }}</div>
+                        <div class="p-2 space-y-2">
+                            {% for item in agenda_by_day|dictsort:day_code %}
+                                {% if item.day == day_code %}
+                                    <div class="bg-gray-50 border rounded-lg p-2 text-xs">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-semibold truncate">{{ item.title }}</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded-full 
+                                                {% if item.post_type == 'IMG' %}bg-blue-100 text-blue-700
+                                                {% elif item.post_type == 'CAR' %}bg-purple-100 text-purple-700
+                                                {% else %}bg-pink-100 text-pink-700{% endif %}">
+                                                {{ item.get_post_type_display }}
+                                            </span>
+                                        </div>
+                                        {% if item.time %}
+                                            <p class="text-gray-400 mt-1">{{ item.time|time:"H:i" }}</p>
+                                        {% endif %}
+                                        <div class="flex gap-1 mt-2">
+                                            <a href="{% url 'agenda_edit' item.id %}" class="text-indigo-600 hover:underline">Editar</a>
+                                            <a href="{% url 'agenda_delete' item.id %}" class="text-red-600 hover:underline"
+                                               onclick="return confirm('¿Eliminar este post?')">Eliminar</a>
+                                        </div>
+                                        <form method="post" action="{% url 'agenda_move' item.id %}" class="mt-1">
+                                            {% csrf_token %}
+                                            <select name="new_day" onchange="this.form.submit()" class="text-[10px] border rounded p-0.5 w-full">
+                                                <option value="">Mover a...</option>
+                                                {% for code2, label2 in days %}
+                                                    <option value="{{ code2 }}" {% if code2 == item.day %}selected{% endif %}>{{ label2 }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endwith %}
+    {% endfor %}
+</div>
+{% endblock %}

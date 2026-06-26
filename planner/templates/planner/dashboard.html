@@ -1,0 +1,101 @@
+{% extends 'planner/base.html' %}
+{% block title %}Feed Visual{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-1">
+        <div class="bg-white p-6 rounded-xl shadow mb-6">
+            <h3 class="font-semibold text-lg mb-4">Subir imagen</h3>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label class="block text-sm text-gray-500 mb-2">Selecciona una imagen JPG o PNG</label>
+                <input type="file" name="image" accept="image/jpeg,image/png" required
+                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                <button type="submit" class="mt-3 w-full bg-indigo-700 text-white py-2 rounded-lg hover:bg-indigo-800 transition font-medium">Subir</button>
+            </form>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="font-semibold text-lg mb-4">Tus imagenes</h3>
+            {% if media_list %}
+                <div id="media-grid" class="grid grid-cols-3 gap-2">
+                    {% for media in media_list %}
+                        <div class="relative group" data-id="{{ media.id }}">
+                            <img src="{{ media.image.url }}" alt="Media {{ media.order }}" class="w-full aspect-square object-cover rounded-lg border">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <a href="{% url 'media_delete' media.id %}" class="bg-red-600 text-white text-xs px-2 py-1 rounded"
+                                   onclick="return confirm('¿Eliminar esta imagen?')">Eliminar</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-400 text-sm">Aun no has subido imagenes.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="flex border-b">
+                <a href="?view=instagram" class="flex-1 text-center py-3 font-medium {% if view_mode == 'instagram' %}text-indigo-700 border-b-2 border-indigo-700{% else %}text-gray-500 hover:text-gray-700{% endif %}">Instagram</a>
+                <a href="?view=facebook" class="flex-1 text-center py-3 font-medium {% if view_mode == 'facebook' %}text-indigo-700 border-b-2 border-indigo-700{% else %}text-gray-500 hover:text-gray-700{% endif %}">Facebook</a>
+                <a href="?view=tiktok" class="flex-1 text-center py-3 font-medium {% if view_mode == 'tiktok' %}text-indigo-700 border-b-2 border-indigo-700{% else %}text-gray-500 hover:text-gray-700{% endif %}">TikTok</a>
+            </div>
+
+            <div class="p-4 bg-gray-100 flex justify-center">
+                {% if view_mode == 'instagram' %}
+                    <div class="grid grid-cols-3 gap-1 max-w-sm bg-white p-2 rounded-lg shadow-inner">
+                        {% for media in media_list %}
+                            <img src="{{ media.image.url }}" alt="Post {{ media.order }}" class="w-full aspect-square object-cover">
+                        {% empty %}
+                            <p class="col-span-3 text-gray-400 text-center py-8">Sube imagenes para ver tu feed</p>
+                        {% endfor %}
+                    </div>
+
+                {% elif view_mode == 'facebook' %}
+                    <div class="w-full max-w-md space-y-4">
+                        {% for media in media_list %}
+                            <div class="bg-white rounded-lg shadow p-3">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-8 h-8 bg-indigo-200 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm">{{ user.username|first|upper }}</div>
+                                    <span class="text-sm font-medium">{{ user.username }}</span>
+                                </div>
+                                <img src="{{ media.image.url }}" alt="Post {{ media.order }}" class="w-full rounded-lg">
+                                <p class="text-xs text-gray-400 mt-2">FeedPlan - Vista previa</p>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-400 text-center py-8">Sube imagenes para ver tu feed</p>
+                        {% endfor %}
+                    </div>
+
+                {% elif view_mode == 'tiktok' %}
+                    <div class="grid grid-cols-3 gap-1 max-w-sm bg-black p-1 rounded-lg">
+                        {% for media in media_list %}
+                            <img src="{{ media.image.url }}" alt="Post {{ media.order }}" class="w-full aspect-[9/16] object-cover">
+                        {% empty %}
+                            <p class="col-span-3 text-gray-400 text-center py-16">Sube imagenes para ver tu feed</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    Sortable.create(document.getElementById('media-grid'), {
+        animation: 150,
+        onEnd: function(evt) {
+            let order = {};
+            let items = document.querySelectorAll('#media-grid > div');
+            items.forEach((el, idx) => {
+                order[el.dataset.id] = idx;
+            });
+            fetch('{% url "media_reorder" %}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                body: JSON.stringify(order)
+            });
+        }
+    });
+</script>
+{% endblock %}

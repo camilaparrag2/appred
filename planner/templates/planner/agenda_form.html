@@ -1,0 +1,77 @@
+{% extends 'planner/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto">
+    <div class="bg-white p-8 rounded-xl shadow">
+        <h2 class="text-2xl font-bold text-center mb-6">{{ title }}</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                {% if field.name != 'images' %}
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <p class="text-gray-400 text-xs mt-1">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-600 mb-2">Selecciona las imagenes</label>
+                <div class="grid grid-cols-3 gap-3" id="image-selector">
+                    {% for media in user_images %}
+                        <label class="relative group cursor-pointer border-2 rounded-lg overflow-hidden hover:border-indigo-500 transition
+                            {% if media.id in form.images.value %}border-indigo-700{% else %}border-gray-200{% endif %}"
+                            for="id_images_{{ forloop.counter0 }}">
+                            <input type="checkbox" name="images" value="{{ media.id }}"
+                                   id="id_images_{{ forloop.counter0 }}"
+                                   class="absolute top-2 left-2 z-10 accent-indigo-700"
+                                   {% if media.id in form.images.value %}checked{% endif %}>
+                            <img src="{{ media.image.url }}" alt="{{ media }}" class="w-full aspect-square object-cover">
+                            <div class="absolute bottom-0 inset-x-0 bg-black bg-opacity-60 text-white text-[10px] px-2 py-1 truncate text-center">
+                                {{ media }}
+                            </div>
+                        </label>
+                    {% empty %}
+                        <p class="col-span-3 text-gray-400 text-sm py-4 text-center">
+                            Aun no has subido imagenes.
+                            <a href="{% url 'dashboard' %}" class="text-indigo-600 hover:underline font-medium">Subir imagenes</a>
+                        </p>
+                    {% endfor %}
+                </div>
+                {% if form.images.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ form.images.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 bg-indigo-700 text-white py-2 rounded-lg font-semibold hover:bg-indigo-800 transition">Guardar</button>
+                <a href="{% url 'agenda' %}" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold text-center hover:bg-gray-300 transition">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+<style>
+    .form-input { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem; }
+    .form-input:focus { outline: none; ring: 2px solid #6366f1; border-color: #6366f1; }
+</style>
+<script>
+    document.querySelectorAll('#image-selector input[type="checkbox"]').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var label = this.parentElement;
+            if (this.checked) {
+                label.classList.remove('border-gray-200');
+                label.classList.add('border-indigo-700');
+            } else {
+                label.classList.remove('border-indigo-700');
+                label.classList.add('border-gray-200');
+            }
+        });
+    });
+</script>
+{% endblock %}

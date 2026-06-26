@@ -1,0 +1,12 @@
+{% extends 'planner/base.html' %}
+{% block title %}Planifica tu contenido en redes sociales{% endblock %}
+{% block content %}
+<div class="text-center py-20">
+    <h1 class="text-5xl font-extrabold text-indigo-700 mb-4">FeedPlan</h1>
+    <p class="text-xl text-gray-500 mb-8">Visualiza y agenda tu contenido para Instagram, Facebook y TikTok.</p>
+    <div class="flex justify-center gap-4">
+        <a href="{% url 'register' %}" class="bg-indigo-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-800 transition">Comenzar gratis</a>
+        <a href="{% url 'login' %}" class="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-300 transition">Ya tengo cuenta</a>
+    </div>
+</div>
+{% endblock %}
